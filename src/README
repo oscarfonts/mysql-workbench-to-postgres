@@ -1,0 +1,30 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2011 by Aevum Softwares LTDA ME
+#
+#
+# This is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+These script was tested with Mysql Workbench 5.1 in linux version.
+The script receive a sql script file, originated by Mysql Workbenchs and
+converts it to a PostgreSQL script compatible. The export is made by 
+Forward Engeneer SQL CREATE script option. The following options can't be
+marked:
+-Generate Separate CREATE INDEX Statments
+Some of the options were not tested yet. The running syntax is:
+
+$python exporter <input.sql> <output.sql>
+
+
+This project is in early version, and any help is welcome.

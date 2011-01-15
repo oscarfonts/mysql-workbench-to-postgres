@@ -1,0 +1,4 @@
+syntax: glob
+.settings
+.project
+.pydevproject

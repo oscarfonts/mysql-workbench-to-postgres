@@ -1,6 +1,6 @@
 # mysql-workbench-to-postgres
 
-Converts a MySQL SQL script from MySQL Workbench into a PostgreSQL compatible SQL script.
+Converts a MySQL Workbench SQL export into a PostgreSQL compatible SQL script.
 
 > Copyright (C) 2011 by Aevum Softwares LTDA ME under GNU General Public License
 

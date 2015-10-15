@@ -20,9 +20,16 @@
 import sys
 import optparse
 import os
+import re
 
 __version__ = 0.1
 SEQUENCE_SUFFIX = "sequence"
+
+
+def remove_comments(string):
+    string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,string) # remove all occurance streamed comments (/*COMMENT */) from string
+    string = re.sub(re.compile("//.*?\n" ) ,"" ,string) # remove all occurance singleline comments (//COMMENT\n ) from string
+    return string
 
 
 def remove_lines_started_with(word, lines):
@@ -128,7 +135,8 @@ def add_cascade_to_drops(lines):
 
 
 def convert(input, output):
-    lines = input.readlines()
+    contents = input.read()
+    lines = remove_comments(contents).splitlines(True)
     remove_lines_with("ASC)", lines)
     remove_lines_started_with("SET", lines)
     remove_lines_started_with("COLLATE", lines)

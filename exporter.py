@@ -162,6 +162,7 @@ def convert(input, output):
     replace_word("TINYINT(1)", "BOOLEAN", lines)
     replace_word("LONGTEXT", "TEXT", lines)
     replace_regex("INT\(\d*\)", "INT", lines)
+    remove_word("CONSTRAINT \"\"", lines)
     put_semicolons(lines)
     add_cascade_to_drops(lines)
     create_sequences(lines)

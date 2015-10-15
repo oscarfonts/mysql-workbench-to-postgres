@@ -27,8 +27,8 @@ SEQUENCE_SUFFIX = "sequence"
 
 
 def remove_comments(string):
-    string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,string) # remove all occurance streamed comments (/*COMMENT */) from string
-    string = re.sub(re.compile("//.*?\n" ) ,"" ,string) # remove all occurance singleline comments (//COMMENT\n ) from string
+    string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)  # remove all block comments (/*COMMENT */)
+    string = re.sub(re.compile("//.*?\n"), "", string)               # remove all single line comments (//COMMENT\n)
     return string
 
 
@@ -107,15 +107,15 @@ def create_sequences(lines):
             if split.index("CREATE") == split.index("TABLE") - 1:
                 lastTable = split[split.index("CREATE") + 2]
         elif "AUTO_INCREMENT" in line:
-            sequences.append({"table": lastTable, "column": split[0]})
+            sequences.append({"table": lastTable.replace("\"", ""), "column": split[0].replace("\"", "")})
 
     for sequence in sequences:
-        lines.append("{0} {1}_{2}_{3};\n".format(
+        lines.append("{0} \"{1}_{2}_{3}\";\n".format(
             "DROP SEQUENCE IF EXISTS",
             sequence["table"],
             sequence["column"],
             SEQUENCE_SUFFIX))
-        lines.append("{0} {1}_{2}_{3};\n".format(
+        lines.append("{0} \"{1}_{2}_{3}\";\n".format(
             "CREATE SEQUENCE ",
             sequence["table"],
             sequence["column"],
@@ -125,6 +125,11 @@ def create_sequences(lines):
 def replace_word(word, replace, lines):
     for i in range(len(lines)):
         lines[i] = lines[i].replace(word, replace)
+
+
+def replace_regex(search, replace, lines):
+    for i in range(len(lines)):
+        lines[i] = re.sub(re.compile(search), replace, lines[i])
 
 
 def add_cascade_to_drops(lines):
@@ -142,8 +147,10 @@ def convert(input, output):
     remove_lines_started_with("COLLATE", lines)
     remove_lines_started_with("ENGINE", lines)
     remove_lines_started_with("COMMENT", lines)
+    remove_lines_started_with("PACK_KEYS", lines)
+    replace_regex("COMMENT .*,\n", ",\n", lines)
     remove_lines_started_with("USE", lines)
-    remove_word("`", lines)
+    replace_word("`", "\"", lines)
     remove_word("'", lines)
     remove_word("UNSIGNED", lines)
     remove_word("IF NOT EXISTS", lines)
@@ -152,6 +159,9 @@ def convert(input, output):
     remove_word("CHARACTER SET", lines, 1)
     remove_word("COLLATE", lines, 1)
     replace_word("DATETIME", "TIMESTAMP", lines)
+    replace_word("TINYINT(1)", "BOOLEAN", lines)
+    replace_word("LONGTEXT", "TEXT", lines)
+    replace_regex("INT\(\d*\)", "INT", lines)
     put_semicolons(lines)
     add_cascade_to_drops(lines)
     create_sequences(lines)

@@ -1,20 +1,19 @@
 # mysql-workbench-to-postgres
 
-Automatically exported from https://code.google.com/p/mysql-workbench-to-postgres/
+Converts a MySQL SQL script from MySQL Workbench into a PostgreSQL compatible SQL script.
 
-## Original README (2011)
+> Copyright (C) 2011 by Aevum Softwares LTDA ME under GNU General Public License
+> Some corrections from Oscar Fonts, 2015
+> Original source code from https://code.google.com/p/mysql-workbench-to-postgres/
 
-These script was tested with Mysql Workbench 5.1 in linux version.
+## Usage
 
-The script receive a sql script file, originated by Mysql Workbenchs and
-converts it to a PostgreSQL script compatible. The export is made by
-Forward Engeneer SQL CREATE script option. The following options can't be
-marked:
+* Use the MySQL Workbench "File" > "Export" > "Forward Engineer SQL CREATE script..." option to generate a MySQL SQL script.
+* Run the exporter command to translate the SQL script to a PostgreSQL compatible one, like this:
 
-* Generate Separate CREATE INDEX Statments
+    ./exporter.py <input-my.sql> <output-postgre.sql>
 
-Some of the options were not tested yet. The running syntax is:
+## Disclaimer
 
-    python exporter <input.sql> <output.sql>
-
-This project is in early version, and any help is welcome.
+This project is not thoroughly tested, contributions welcome.
+Last tested on MySQL Workbench v.6.2 (Oct 2015).

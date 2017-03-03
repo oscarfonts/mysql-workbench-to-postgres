@@ -189,7 +189,7 @@ def convert(input, output):
     remove_lines_started_with("COLLATE", lines)
     remove_lines_started_with("ENGINE", lines)
     remove_lines_started_with("COMMENT", lines)
-    remove_lines_started_with("schemaPACK_KEYS", lines)
+    remove_lines_started_with("PACK_KEYS", lines)
     replace_regex("COMMENT .*,\n", ",\n", lines)
     remove_word(" COMMENT ", lines)
     remove_lines_started_with("USE", lines)

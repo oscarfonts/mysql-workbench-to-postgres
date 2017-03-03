@@ -24,7 +24,7 @@ import re
 
 __version__ = 0.1
 SEQUENCE_SUFFIX = "sequence"
-
+SCHEMA = "";
 
 def remove_comments(string):
     string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)  # remove all block comments (/*COMMENT */)
@@ -107,21 +107,64 @@ def create_sequences(lines):
             if split.index("CREATE") == split.index("TABLE") - 1:
                 lastTable = split[split.index("CREATE") + 2]
         elif "AUTO_INCREMENT" in line:
-            sequences.append({"table": lastTable.replace("\"", ""), "column": split[0].replace("\"", "")})
+            if "." in lastTable:
+                spl = lastTable.replace("\"", "").split(".")
+                schema = "\"" + spl[0] + "\"."
+                table = spl[1]
+            else:
+                table = lastTable.replace("\"", "")
+                schema = ""
+                
+            column = split[0].replace("\"", "")
+            sequences.append({"table": table, "column": column, "schema": schema})
 
     for sequence in sequences:
-        lines.append("{0} \"{1}_{2}_{3}\";\n".format(
+        lines.append("{0} {1}\"{2}_{3}_{4}\";\n".format(
             "DROP SEQUENCE IF EXISTS",
+            sequence["schema"],
             sequence["table"],
             sequence["column"],
             SEQUENCE_SUFFIX))
-        lines.append("{0} \"{1}_{2}_{3}\";\n".format(
+        lines.append("{0} {1}\"{2}_{3}_{4}\";\n".format(
             "CREATE SEQUENCE ",
+            sequence["schema"],
             sequence["table"],
             sequence["column"],
             SEQUENCE_SUFFIX))
-
-
+        lines.append("ALTER TABLE {0}\"{1}\" ALTER COLUMN \"{2}\" SET DEFAULT NEXTVAL('{0}\"{1}_{2}_{3}\"');\n".format(
+            sequence["schema"],
+            sequence["table"], 
+            sequence["column"],
+            SEQUENCE_SUFFIX,))
+def get_current_schema(lines):
+    for line in lines:
+        if "CREATE SCHEMA" in line:
+            return re.sub('\s+',' ',line.replace(';', '').replace('"', '')).strip().split(' ')[-1]
+        elif "CREATE TABLE" in line:
+            tbl = re.search("CREATE TABLE (.*) \(", line).group(1).replace('"', '')
+            if "." in tbl:
+                return tbl.split('.')[0].strip()
+    return None
+        
+def set_schema(lines):
+    currSchema = get_current_schema(lines)
+    if currSchema == None:
+        print "There is no schema set on the original script! Will default to public schema" # Not implemented: add schema to all statements
+    else:
+        for i in range(len(lines)):
+            line = lines[i]
+            regex = re.compile("((" + currSchema + ")(\")?(\.|;))")
+            search = regex.search(line)
+            if search:
+                sufix = ''
+                if search.group(3):
+                    sufix += search.group(3);
+                if search.group(4):
+                    sufix += search.group(4)
+                 
+                line = re.sub(regex, SCHEMA + sufix, line)
+                lines[i] = line              
+            
 def replace_word(word, replace, lines):
     for i in range(len(lines)):
         lines[i] = lines[i].replace(word, replace)
@@ -130,7 +173,6 @@ def replace_word(word, replace, lines):
 def replace_regex(search, replace, lines):
     for i in range(len(lines)):
         lines[i] = re.sub(re.compile(search), replace, lines[i])
-
 
 def add_cascade_to_drops(lines):
     for i in range(len(lines)):
@@ -147,14 +189,15 @@ def convert(input, output):
     remove_lines_started_with("COLLATE", lines)
     remove_lines_started_with("ENGINE", lines)
     remove_lines_started_with("COMMENT", lines)
-    remove_lines_started_with("PACK_KEYS", lines)
+    remove_lines_started_with("schemaPACK_KEYS", lines)
     replace_regex("COMMENT .*,\n", ",\n", lines)
     remove_word(" COMMENT ", lines)
     remove_lines_started_with("USE", lines)
     replace_word("`", "\"", lines)
-    remove_word("'", lines)
+    #remove_word("'", lines) # this breaks DEFAULT '' statements
     remove_word("UNSIGNED", lines)
     remove_word("IF NOT EXISTS", lines)
+    replace_regex("CREATE SCHEMA (.*);", r"CREATE SCHEMA IF NOT EXISTS \1;", lines)
     remove_word("DEFAULT CHARACTER SET =", lines, 1)
     remove_word("DEFAULT CHARACTER SET", lines, 1)
     remove_word("CHARACTER SET", lines, 1)
@@ -169,31 +212,43 @@ def convert(input, output):
     add_cascade_to_drops(lines)
     create_sequences(lines)
     remove_word("AUTO_INCREMENT", lines)
-
+    if SCHEMA != "":
+        set_schema(lines);
+    
     output.writelines(lines)
-
 
 def main(args):
     """Check arguments from the command line and executed the required action"""
     parser = optparse.OptionParser(
-        usage="Usage: %prog [options] <input_file> <output_file>",
+        usage="Usage: %prog [options] <input_file> [<output_file>]",
         version="%prog {0}".format(__version__))
+    parser.add_option("-s", "--schema",
+        action="store", dest="schema",
+        help="Schema name for the Postgre script. Default value is the table name for MySQL Workbench.");
     # parser.add_option("-o", "--output",
     #                  action="store", dest="output", 
     #                  help="Generates the output")
     (options, args) = parser.parse_args()
-    if len(args) == 2:
+    if len(args) > 0:
         input_path = args[0]
         if not os.path.exists(input_path):
             print "First argument should be a valid sql file"
             return
-        output_path = args[1]
+            
+        if len(args) < 2:
+            output_path = "{0}_postgre.{1}".format(*input_path.rsplit('.', 1))
+        else:
+            output_path = args[1]
+        
+        if options.schema != "" and options.schema != None:
+            global SCHEMA
+            SCHEMA = options.schema
+             
         input = file(input_path, "r")
         output = file(output_path, "w")
         convert(input, output)
-
     else:
-        print "Ivalid parameters. You should run YYY <input> <output>"
+        print "Invalid parameters. You should run YYY <input> [<output>]"
         return
 
 

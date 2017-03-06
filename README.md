@@ -8,13 +8,20 @@ Converts a MySQL Workbench SQL export into a PostgreSQL compatible SQL script.
 
 > Some corrections by Oscar Fonts, 2015
 
+> Some more corrections by Gus Antoniassi, 2017
+
 ## Usage
 
 * Use the MySQL Workbench "File" > "Export" > "Forward Engineer SQL CREATE script..." option to generate a MySQL SQL script.
 * Run the exporter command to translate the SQL script to a PostgreSQL compatible one, like this:
 
 ```
-    ./exporter.py input.sql output.sql
+    ./exporter.py input.sql [output.sql]
+```
+* If you omit the output file, a file with `_postgre` will be created
+* You can change the schema name using `-s` or `--schema`, like this:
+```
+    ./exporter.py input.sql --schema public
 ```
 
 ## Disclaimer

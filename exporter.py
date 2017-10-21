@@ -243,7 +243,7 @@ def main(args):
         if options.schema != "" and options.schema != None:
             global SCHEMA
             SCHEMA = options.schema
-             
+            
         input = open(input_path, "r")
         output = open(output_path, "w")
         convert(input, output)

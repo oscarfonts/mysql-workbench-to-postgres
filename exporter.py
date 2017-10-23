@@ -149,7 +149,7 @@ def get_current_schema(lines):
 def set_schema(lines):
     currSchema = get_current_schema(lines)
     if currSchema == None:
-        print "There is no schema set on the original script! Will default to public schema" # Not implemented: add schema to all statements
+        print("There is no schema set on the original script! Will default to public schema") # Not implemented: add schema to all statements
     else:
         for i in range(len(lines)):
             line = lines[i]
@@ -232,7 +232,7 @@ def main(args):
     if len(args) > 0:
         input_path = args[0]
         if not os.path.exists(input_path):
-            print "First argument should be a valid sql file"
+            print("First argument should be a valid sql file")
             return
             
         if len(args) < 2:
@@ -243,12 +243,12 @@ def main(args):
         if options.schema != "" and options.schema != None:
             global SCHEMA
             SCHEMA = options.schema
-             
-        input = file(input_path, "r")
-        output = file(output_path, "w")
+            
+        input = open(input_path, "r")
+        output = open(output_path, "w")
         convert(input, output)
     else:
-        print "Invalid parameters. You should run YYY <input> [<output>]"
+        print ("Invalid parameters. You should run YYY <input> [<output>]")
         return
 
 
